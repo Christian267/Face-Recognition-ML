@@ -39,7 +39,7 @@ get_label_name = metadata.features['label'].int2str     # creates a function obj
 
 # for img, label in train.take(2):
 #     print("New shape:", img.shape)
-
+IMG_SIZE = 160
 BATCH_SIZE = 32
 SHUFFLE_BUFFER_SIZE = 1000
 
