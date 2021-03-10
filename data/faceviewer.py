@@ -1,4 +1,5 @@
 import cv2 as cv
+import os
 
 img = cv.imread('myFaces/RawImages/IMG_06.jpg')
 # cv.imshow('faceImage', img)
@@ -6,7 +7,9 @@ img = cv.imread('myFaces/RawImages/IMG_06.jpg')
 gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
 # cv.imshow('Gray', gray)
 
-haar_cascade = cv.CascadeClassifier(r'C:\Users\14694\MPS\tf-venv\Facial Recognition CNN\FaceDataProcessing\haar_face.xml')
+myDir = os.getcwd()
+haar_face = os.path.join(myDir, 'haar_face.xml')
+haar_cascade = cv.CascadeClassifier(haar_face)
 faces_rect = haar_cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=6)
 
 for(x,y,w,h) in faces_rect:
