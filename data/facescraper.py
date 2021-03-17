@@ -1,8 +1,9 @@
 import cv2 as cv
 import os
 import math
+import pathlib
 
-def cropFaceImage(imageDirectory, size=160):
+def cropFaceImage(imageDirectory, haar_cascade, size=160):
     '''
     Returns a square image of detected face cropped out of the given image, returns None if no face is detected
     Param: imageDirectory: the directory of target image
@@ -10,12 +11,8 @@ def cropFaceImage(imageDirectory, size=160):
     '''
     
     img = cv.imread(imageDirectory)
-    # cv.imshow('faceImage', img)
-
     gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
-    # cv.imshow('Gray', gray)
-
-    haar_cascade = cv.CascadeClassifier(r'C:\Users\14694\MPS\tf-venv\Facial Recognition CNN\FaceDataProcessing\haar_face.xml')
+    
     faces_rect = haar_cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=6)
     
     xtemp, ytemp, wtemp, htemp = 0, 0, 0, 0
@@ -31,35 +28,38 @@ def cropFaceImage(imageDirectory, size=160):
         return None
         
     x,y,w,h = xtemp, ytemp, wtemp, htemp
-    crop = gray[y:y + h, x:x + w]
+    crop = img[y:y + h, x:x + w]
     crop = cv.resize(crop, (size, size))
     return crop
     # cv.imshow('Cropped Face', crop)
     # cv.imshow('Detected Faces', img)
     # cv.waitKey(0)
 
-def askWhoseImages():
+def askForDirectory():
     '''
-    Asks user to enter integer representing whether they are choosing to process their own images or images of others. Returns 0 for others, 1 for self.
+    Asks user to enter integer representing whether they are choosing to process their own images or images of others. Returns 0 for others,
+    1 for self.
     '''
     while True:
         try:
-            yourImages = int(input('Enter "1" if processing your images in the myfaces directory. Enter "0" if processing others in the "otherfaces" directory (1/0): '))
-            if yourImages in [0,1]:
+            trainOrTest = int(input('Are these images for training or testing? (0 = testing, 1 = training): '))
+            youOrOther = int(input('Are these images of yourself? (0 = no, 1 = yes): '))
+            
+            if trainOrTest in [0, 1] and youOrOther in [0, 1]:
                 break
         except ValueError as e:
-            print(f'{e}, Please enter the integer values "0" or "1".')
+            print(f'{e}, Please enter proper values!')
         
-    return yourImages
+    return (trainOrTest, youOrOther)
 
 def cropAndSaveImages(sourceDirectory, targetDirectory):
-    '''Goes through every image in the sourceDirectory and crops the detected face from the image. 
-       These cropped images are then all saved to the targetDirectory
-       Params: sourceDirectory: directory containing the images to be processed
-               targetDirectory: directory to save the new cropped images
-       
-       '''
-
+    '''
+    Goes through every image in the sourceDirectory and crops the detected face from the image. 
+    These cropped images are then all saved to the targetDirectory
+    Params: sourceDirectory: directory containing the images to be processed
+    targetDirectory: directory to save the new cropped images
+    '''
+    haar_cascade = cv.CascadeClassifier('haar_face.xml')
     os.chdir(targetDirectory)
     filenames = os.listdir(sourceDirectory)
     numberOfImages = len(filenames)
@@ -68,7 +68,7 @@ def cropAndSaveImages(sourceDirectory, targetDirectory):
     for filename in filenames:
         image = os.path.join(sourceDirectory, filename)
         print(image)
-        croppedImage = cropFaceImage(image)
+        croppedImage = cropFaceImage(image, haar_cascade)
         try:
             if not croppedImage.any():
                 print('No face detected, skipping image')
@@ -84,22 +84,19 @@ def cropAndSaveImages(sourceDirectory, targetDirectory):
         cv.imwrite(newFilename, croppedImage)
         i += 1
 
-
-
 if __name__ =='__main__':
-    myDir = os.getcwd()
-    sourceDirectory = [os.path.join(myDir, 'rawimages', 'otherfaces') ,os.path.join(myDir, 'rawimages', 'myfaces')]
-    targetDirectory = [os.path.join(myDir, 'rawimages', 'otherfacescropped'), os.path.join(myDir, 'rawimages', 'myfacescropped')]
+    baseDirectory = pathlib.Path(__file__).parent.absolute()
+    testOrTrain, isMyFace = askForDirectory()
+    folders = ['test', 'train']
+    testOrTrain = folders[testOrTrain]
+    sourceDirectory = os.path.join(baseDirectory, 'rawimages', testOrTrain, str(isMyFace))
+    targetDirectory = os.path.join(baseDirectory, 'datasets', testOrTrain, str(isMyFace))
+    print('The source folder is ' + sourceDirectory)
+    print('The target folder is ' + targetDirectory)
+    print('Files before saving images:')
+    print(os.listdir(targetDirectory))
 
-    yourImages = askWhoseImages()
-    sourceFolder = sourceDirectory[yourImages]
-    targetFolder = targetDirectory[yourImages]
+    cropAndSaveImages(sourceDirectory, targetDirectory)
 
-    print('The target folder is ' + targetFolder)
-    print('before saving images: ')
-    print(os.listdir(targetFolder))
-
-    cropAndSaveImages(sourceFolder, targetFolder)
-
-    print('After saving images:')
-    print(os.listdir(targetFolder))
+    print('Files after saving images:')
+    print(os.listdir(targetDirectory))

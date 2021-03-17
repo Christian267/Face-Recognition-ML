@@ -1,6 +1,10 @@
 import cv2 as cv
 import os
 
+'''
+Script for observing single images and the cropped image. Used for initial testing and debugging of the cropping of images.
+'''
+
 img = cv.imread('myFaces/RawImages/IMG_06.jpg')
 # cv.imshow('faceImage', img)
 
