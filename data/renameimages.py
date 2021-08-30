@@ -26,6 +26,3 @@ def renameImages(directory):
     print()
 
 
-myDir = os.getcwd()
-targetDirectory = os.path.join(myDir, 'rawimages', 'train', '1')
-renameImages(targetDirectory)

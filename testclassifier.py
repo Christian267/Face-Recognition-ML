@@ -7,9 +7,9 @@ from sklearn.preprocessing import Normalizer
 from sklearn.svm import SVC
 from matplotlib import pyplot
 import pickle
+
 # load faces
 data = np.array(pickle.load(open('data/datasets/Xtest.pickle', 'rb')))
-
 testX_faces = data
 # load face embeddings
 data = load('embeddedFaceData.npz')
@@ -23,7 +23,6 @@ out_encoder = LabelEncoder()
 out_encoder.fit(trainy)
 trainy = out_encoder.transform(trainy)
 testy = out_encoder.transform(testy)
-# fit model
 model = SVC(kernel='linear', probability=True)
 model.fit(trainX, trainy)
 
